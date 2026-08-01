@@ -1,6 +1,8 @@
 import streamlit as st
-import subprocess
-import os
+from document_qa import app1
+from deep_research import app2
+from video_assistant import app3
+
 
 st.set_page_config(
     page_title="ResearchGPT",
@@ -8,282 +10,75 @@ st.set_page_config(
     layout="wide"
 )
 
-# -------------------------
-# CSS
-# -------------------------
-st.markdown("""
-<style>
-
-.main{
-    background:#0E1117;
-}
-
-.hero{
-padding:40px;
-border-radius:20px;
-background:linear-gradient(135deg,#1f2937,#111827);
-text-align:center;
-color:white;
-}
-
-.title{
-font-size:55px;
-font-weight:bold;
-}
-
-.subtitle{
-font-size:22px;
-color:#d1d5db;
-}
-
-.feature{
-padding:25px;
-border-radius:15px;
-background:#1e293b;
-text-align:center;
-height:240px;
-box-shadow:0 0 10px rgba(0,0,0,.2);
-}
-
-.feature h2{
-color:#4ade80;
-}
-
-.footer{
-text-align:center;
-color:gray;
-margin-top:50px;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# -------------------------
-# Session
-# -------------------------
+# ---------- Session ----------
 if "page" not in st.session_state:
-    st.session_state.page="Home"
+    st.session_state.page = "Home"
 
-
-# -------------------------
-# Sidebar
-# -------------------------
+# ---------- Sidebar ----------
 with st.sidebar:
-
     st.title("🧠 ResearchGPT")
 
-    option = st.radio(
-        "Navigation",
-        [
-            "🏠 Home",
-            "📄 Document QA",
-            "🔍 Deep Research",
-            "🎥 Video Assistant"
-        ]
-    )
+    if st.button("🏠 Home", use_container_width=True):
+        st.session_state.page = "Home"
 
+    if st.button("📄 Document QA", use_container_width=True):
+        st.session_state.page = "Document QA"
 
-# -------------------------
-# HOME
-# -------------------------
-if option=="🏠 Home":
+    if st.button("🔍 Deep Research", use_container_width=True):
+        st.session_state.page = "Deep Research"
 
-    st.markdown("""
-    <div class='hero'>
-    <div class='title'>ResearchGPT</div>
+    if st.button("🎥 Video Assistant", use_container_width=True):
+        st.session_state.page = "Video Assistant"
 
-    <div class='subtitle'>
-    One AI Platform for Research, Documents and Videos
-    </div>
+# ---------- Home ----------
+if st.session_state.page == "Home":
 
-    <br>
+    st.title("🧠 ResearchGPT")
+    st.subheader("One Platform for AI Research")
 
-    Build with Streamlit + LangChain + OpenAI + ChromaDB
+    st.markdown("---")
 
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.write("")
-    st.write("")
-
-    c1,c2,c3=st.columns(3)
+    c1, c2, c3 = st.columns(3)
 
     with c1:
-
-        st.markdown("""
-        <div class='feature'>
-
-        <h2>📄 Document QA</h2>
-
-        Upload PDFs
-
-        <br><br>
-
-        Semantic Search
-
-        <br><br>
-
-        Ask Questions
-
-        <br><br>
-
-        ChromaDB Vector Store
-
-        </div>
-        """,unsafe_allow_html=True)
+        st.info("📄 Document QA")
+        st.write("Ask questions from PDFs")
+        if st.button("Explore Document QA"):
+            st.session_state.page = "Document QA"
+            st.rerun()
 
     with c2:
-
-        st.markdown("""
-        <div class='feature'>
-
-        <h2>🔍 Deep Research</h2>
-
-        AI Agent
-
-        <br><br>
-
-        Multi-step Reasoning
-
-        <br><br>
-
-        Web Research
-
-        <br><br>
-
-        Report Generation
-
-        </div>
-        """,unsafe_allow_html=True)
+        st.info("🔍 Deep Research")
+        st.write("Generate AI research reports")
+        if st.button("Explore Deep Research"):
+            st.session_state.page = "Deep Research"
+            st.rerun()
 
     with c3:
+        st.info("🎥 Video Assistant")
+        st.write("Analyze YouTube videos")
+        if st.button("Explore Video Assistant"):
+            st.session_state.page = "Video Assistant"
+            st.rerun()
 
-        st.markdown("""
-        <div class='feature'>
-
-        <h2>🎥 Video Assistant</h2>
-
-        YouTube Support
-
-        <br><br>
-
-        Video Summaries
-
-        <br><br>
-
-        Transcript QA
-
-        <br><br>
-
-        AI Insights
-
-        </div>
-        """,unsafe_allow_html=True)
-
-    st.write("")
-    st.write("")
-
-    st.subheader("✨ Features")
+    st.markdown("---")
 
     st.markdown("""
-- 📄 Intelligent PDF Question Answering
-- 🔍 AI Deep Research Agent
-- 🎥 Video Understanding Assistant
-- 🧠 OpenAI Powered
-- 📚 Chroma Vector Database
-- ⚡ Fast Retrieval
-- 🌐 Modern Dashboard
+    ### Features
+
+    - 📄 PDF Question Answering
+    - 🔍 AI Research Agent
+    - 🎥 Video Understanding
+    - 🤖 OpenAI Powered
+    - ⚡ Fast and Interactive
     """)
 
-    st.write("")
+# ---------- Pages ----------
+elif st.session_state.page == "Document QA":
+    app1.run()
 
-    col1,col2,col3=st.columns([2,2,2])
+elif st.session_state.page == "Deep Research":
+    app2.run()
 
-    with col2:
-        if st.button("🚀 Explore ResearchGPT",use_container_width=True):
-            st.success("Select any module from the left sidebar.")
-
-    st.markdown("""
-    <div class='footer'>
-    ResearchGPT © 2026
-    </div>
-    """,unsafe_allow_html=True)
-
-
-# -------------------------
-# DOCUMENT QA
-# -------------------------
-elif option=="📄 Document QA":
-
-    st.title("📄 Document Question Answering")
-
-    st.write("""
-Ask questions from PDFs using semantic search and vector database.
-    """)
-
-    st.info("Run the Document QA application.")
-
-    if st.button("▶ Launch Document QA"):
-
-        app_path=os.path.join(
-            os.getcwd(),
-            "document_qa",
-            "main.py"
-        )
-
-        subprocess.Popen(["streamlit","run",app_path])
-
-        st.success("Document QA launched in a new browser tab.")
-
-
-# -------------------------
-# DEEP RESEARCH
-# -------------------------
-elif option=="🔍 Deep Research":
-
-    st.title("🔍 Deep Research Agent")
-
-    st.write("""
-Generate AI-powered research reports using autonomous agents.
-    """)
-
-    st.info("Run Deep Research.")
-
-    if st.button("▶ Launch Deep Research"):
-
-        app_path=os.path.join(
-            os.getcwd(),
-            "deep_research",
-            "app.py"
-        )
-
-        subprocess.Popen(["streamlit","run",app_path])
-
-        st.success("Deep Research launched in a new browser tab.")
-
-
-# -------------------------
-# VIDEO ASSISTANT
-# -------------------------
-elif option=="🎥 Video Assistant":
-
-    st.title("🎥 Video Assistant")
-
-    st.write("""
-Analyze YouTube videos, transcripts and ask questions.
-    """)
-
-    st.info("Run Video Assistant.")
-
-    if st.button("▶ Launch Video Assistant"):
-
-        app_path=os.path.join(
-            os.getcwd(),
-            "video_assistant",
-            "main.py"
-        )
-
-        subprocess.Popen(["streamlit","run",app_path])
-
-        st.success("Video Assistant launched in a new browser tab.")
+elif st.session_state.page == "Video Assistant":
+    app3.run()
