@@ -1,8 +1,9 @@
 import streamlit as st
-from document_qa import app1
-from deep_research import app2
-from video_assistant import app3
 
+# Import apps from files in the same directory
+import app1
+import app2
+import app3
 
 st.set_page_config(
     page_title="ResearchGPT",
