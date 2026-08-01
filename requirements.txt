@@ -1,0 +1,63 @@
+# Streamlit UI
+streamlit
+
+# Environment variables
+python-dotenv
+
+
+# -----------------------
+# Document Q&A (RAG)
+# -----------------------
+
+langchain
+langchain-core
+langchain-community
+langchain-text-splitters
+
+langchain-ollama
+langchain-mistralai
+
+chromadb
+
+pypdf
+
+
+# -----------------------
+# Deep Research
+# -----------------------
+
+requests
+beautifulsoup4
+
+duckduckgo-search
+
+tavily-python
+
+
+# -----------------------
+# Video Assistant
+# -----------------------
+
+openai-whisper
+
+yt-dlp
+
+pydub
+
+ffmpeg-python
+
+
+# -----------------------
+# AI / ML Utilities
+# -----------------------
+
+numpy
+pandas
+tqdm
+
+
+# -----------------------
+# Optional
+# -----------------------
+
+sentence-transformers
