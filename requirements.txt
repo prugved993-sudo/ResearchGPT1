@@ -40,7 +40,7 @@ tavily-python
 
 openai-whisper
 
-yt-dlp
+yt-dlp>=2025.7.21
 
 pydub
 
