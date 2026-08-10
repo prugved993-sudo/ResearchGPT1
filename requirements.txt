@@ -4,7 +4,6 @@ streamlit
 # Environment variables
 python-dotenv
 
-
 # -----------------------
 # Document Q&A (RAG)
 # -----------------------
@@ -18,21 +17,17 @@ langchain-ollama
 langchain-mistralai
 
 chromadb
-
 pypdf
-
 
 # -----------------------
 # Deep Research
 # -----------------------
 
-requests
+requests>=2.32.5
 beautifulsoup4
 
 duckduckgo-search
-
 tavily-python
-
 
 # -----------------------
 # Video Assistant
@@ -40,12 +35,11 @@ tavily-python
 
 openai-whisper
 
-yt-dlp>=2025.7.21
+# Updated YouTube downloader
+yt-dlp[default]
 
 pydub
-
 ffmpeg-python
-
 
 # -----------------------
 # AI / ML Utilities
@@ -54,7 +48,6 @@ ffmpeg-python
 numpy
 pandas
 tqdm
-
 
 # -----------------------
 # Optional
