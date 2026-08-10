@@ -52,5 +52,6 @@ tqdm
 # -----------------------
 # Optional
 # -----------------------
-
+ffmpeg-python
+pydub
 sentence-transformers
