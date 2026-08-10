@@ -4,6 +4,7 @@ import wave
 import shutil
 import subprocess
 import yt_dlp
+import streamlit as st
 
 
 # ============================================================
@@ -16,38 +17,120 @@ os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 
 # ============================================================
-# FFmpeg
+# Find FFmpeg
 # ============================================================
 
 def get_ffmpeg():
 
+    # First try PATH
     ffmpeg = shutil.which("ffmpeg")
 
     if ffmpeg:
         return ffmpeg
 
-    possible = [
+    # Common Linux locations
+    possible_paths = [
         "/usr/bin/ffmpeg",
         "/usr/local/bin/ffmpeg",
+        "/bin/ffmpeg",
     ]
 
-    for path in possible:
-        if os.path.exists(path):
+    for path in possible_paths:
+
+        if os.path.isfile(path):
             return path
 
     raise RuntimeError(
-        "FFmpeg is not installed.\n\n"
-        "Create packages.txt in the project root "
-        "with:\n\n"
-        "ffmpeg"
+        "FFmpeg was not found on Streamlit Cloud.\n\n"
+        "Make sure packages.txt exists in the ROOT "
+        "of your GitHub repository and contains:\n\n"
+        "ffmpeg\n\n"
+        "Then reboot the Streamlit app."
     )
 
 
 # ============================================================
-# YouTube Downloader
+# Convert MP3 / MP4 / Other Media to WAV
 # ============================================================
 
-def download_youtube_audio(url: str) -> str:
+def convert_to_wav(input_path: str):
+
+    ffmpeg = get_ffmpeg()
+
+    if not os.path.exists(input_path):
+
+        raise FileNotFoundError(
+            f"Input file not found: {input_path}"
+        )
+
+    output_path = (
+        os.path.splitext(input_path)[0]
+        + "_converted.wav"
+    )
+
+    command = [
+        ffmpeg,
+
+        "-y",
+
+        "-i",
+        input_path,
+
+        # Mono audio
+        "-ac",
+        "1",
+
+        # 16 kHz
+        "-ar",
+        "16000",
+
+        # PCM WAV
+        "-acodec",
+        "pcm_s16le",
+
+        output_path,
+    ]
+
+    try:
+
+        subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+    except FileNotFoundError:
+
+        raise RuntimeError(
+            "FFmpeg executable was not found.\n\n"
+            "Check packages.txt and redeploy "
+            "the Streamlit application."
+        )
+
+    except subprocess.CalledProcessError as e:
+
+        raise RuntimeError(
+            "FFmpeg conversion failed.\n\n"
+            + e.stderr[-3000:]
+        )
+
+    if not os.path.exists(output_path):
+
+        raise RuntimeError(
+            "FFmpeg finished but the WAV file "
+            "was not created."
+        )
+
+    return output_path
+
+
+# ============================================================
+# Download YouTube Audio
+# ============================================================
+
+def download_youtube_audio(url: str):
 
     ffmpeg = get_ffmpeg()
 
@@ -56,42 +139,40 @@ def download_youtube_audio(url: str) -> str:
         "%(id)s.%(ext)s"
     )
 
+    po_server_url = st.secrets.get(
+        "BGUTIL_POT_URL",
+        ""
+    )
+
     ydl_opts = {
 
-        # Best available audio
         "format": "bestaudio/best",
 
-        # Safe filename using video ID
         "outtmpl": output_template,
 
-        # Don't download playlists
         "noplaylist": True,
 
-        # Retry configuration
         "retries": 3,
+
         "fragment_retries": 3,
+
         "extractor_retries": 3,
 
-        # Network timeout
         "socket_timeout": 30,
 
-        # FFmpeg
         "ffmpeg_location": ffmpeg,
 
-        # ----------------------------------------------------
-        # PO TOKEN PROVIDER
-        # ----------------------------------------------------
-        #
-        # bgutil-ytdlp-pot-provider installs a yt-dlp
-        # extractor plugin which supplies PO tokens.
-        #
         "extractor_args": {
+
             "youtube": {
                 "player_client": ["mweb"]
-            }
+            },
+
+            "youtubepot-bgutilhttp": {
+                "base_url": po_server_url
+            },
         },
 
-        # Convert audio to WAV
         "postprocessors": [
             {
                 "key": "FFmpegExtractAudio",
@@ -105,33 +186,26 @@ def download_youtube_audio(url: str) -> str:
 
     try:
 
-        print("Extracting YouTube information...")
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(
+            ydl_opts
+        ) as ydl:
 
             info = ydl.extract_info(
                 url,
                 download=True
             )
 
-            video_id = info.get("id")
-
-            if not video_id:
-
-                raise RuntimeError(
-                    "Could not determine YouTube video ID."
-                )
+            video_id = info["id"]
 
         wav_path = os.path.join(
             DOWNLOAD_DIR,
             f"{video_id}.wav"
         )
 
-        # If yt-dlp produced WAV directly
         if os.path.exists(wav_path):
             return wav_path
 
-        # Look for another downloaded format
+        # Search for downloaded media
         possible_files = [
             os.path.join(
                 DOWNLOAD_DIR,
@@ -147,106 +221,35 @@ def download_youtube_audio(url: str) -> str:
             ),
         ]
 
-        source_file = None
-
         for file in possible_files:
 
             if os.path.exists(file):
 
-                source_file = file
-                break
-
-        if source_file:
-
-            return convert_to_wav(
-                source_file
-            )
+                return convert_to_wav(file)
 
         raise RuntimeError(
-            "YouTube audio was downloaded, "
-            "but the WAV file was not found."
+            "YouTube audio was downloaded but "
+            "the WAV file could not be found."
         )
 
     except yt_dlp.utils.DownloadError as e:
 
         error = str(e)
 
-        if "403" in error or "Forbidden" in error:
+        if "403" in error:
 
             raise RuntimeError(
                 "YouTube returned HTTP 403 Forbidden.\n\n"
-                "The YouTube PO-token provider could not "
-                "obtain a valid token for this request.\n\n"
-                "Check that bgutil-ytdlp-pot-provider is "
-                "installed correctly on Streamlit Cloud."
+                "Check your PO-token server configuration."
             )
 
         raise RuntimeError(
             f"YouTube download failed:\n{error}"
         )
 
-    except Exception as e:
-
-        raise RuntimeError(
-            f"YouTube processing failed:\n{e}"
-        )
-
 
 # ============================================================
-# Convert to WAV
-# ============================================================
-
-def convert_to_wav(input_path: str):
-
-    ffmpeg = get_ffmpeg()
-
-    output_path = (
-        os.path.splitext(input_path)[0]
-        + "_converted.wav"
-    )
-
-    command = [
-        ffmpeg,
-        "-y",
-        "-i",
-        input_path,
-        "-ac",
-        "1",
-        "-ar",
-        "16000",
-        "-acodec",
-        "pcm_s16le",
-        output_path,
-    ]
-
-    try:
-
-        subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-
-    except subprocess.CalledProcessError as e:
-
-        raise RuntimeError(
-            "FFmpeg conversion failed:\n"
-            + e.stderr[-2000:]
-        )
-
-    if not os.path.exists(output_path):
-
-        raise RuntimeError(
-            "FFmpeg did not create the WAV file."
-        )
-
-    return output_path
-
-
-# ============================================================
-# Chunk Audio
+# Split WAV into Chunks
 # ============================================================
 
 def chunk_audio(
@@ -325,7 +328,7 @@ def process_input(source):
     else:
 
         print(
-            "Converting local video..."
+            "Converting uploaded media..."
         )
 
         wav_path = convert_to_wav(
