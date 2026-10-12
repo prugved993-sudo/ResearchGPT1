@@ -1,3 +1,4 @@
+
 import streamlit as st
 
 # Import apps from files in the same directory
@@ -57,7 +58,7 @@ if st.session_state.page == "Home":
 
     with c3:
         st.info("🎥 Video Assistant")
-        st.write("Analyze YouTube videos")
+        st.write("Upload and analyze local video files")
         if st.button("Explore Video Assistant"):
             st.session_state.page = "Video Assistant"
             st.rerun()
@@ -69,8 +70,8 @@ if st.session_state.page == "Home":
 
     - 📄 PDF Question Answering
     - 🔍 AI Research Agent
-    - 🎥 Video Understanding
-    - 🤖 OpenAI Powered
+    - 🎥 Local Video Analysis
+    - 🤖 AI-Powered Research
     - ⚡ Fast and Interactive
     """)
 
@@ -82,4 +83,5 @@ elif st.session_state.page == "Deep Research":
     app2.run()
 
 elif st.session_state.page == "Video Assistant":
+    # Analyze local video files only
     app3.run()
